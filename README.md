@@ -22,3 +22,19 @@ Servico em TypeScript com rota POST para receber dados e repassar para duas requ
 
 1. Build da imagem: `docker build -t futuro-promotora-envio-sms .`
 2. Suba o container: `docker run --env-file .env -p 3000:3000 futuro-promotora-envio-sms`
+
+## Exemplo de requisicao
+
+```bash
+curl --location 'localhost:3000/api/notify' \
+  --header 'Content-Type: application/json' \
+  --header 'token: replace_me' \
+  --data-raw '{
+    "email": "agente@empresa.com",
+    "nome": "Joao da Silva",
+    "ramal": 1234,
+    "user_id": 98765,
+    "phoneDialed": "11999998888",
+    "phoneName": "Cliente Exemplo"
+  }'
+```
