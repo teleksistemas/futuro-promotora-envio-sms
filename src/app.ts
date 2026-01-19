@@ -1,5 +1,6 @@
 import express from "express";
 import { routes } from "./routes";
+import { env } from "./config/env";
 
 export const createApp = () => {
   const app = express();
@@ -8,6 +9,14 @@ export const createApp = () => {
 
   app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok" });
+  });
+
+  app.use("/api", (req, res, next) => {
+    const token = req.header("token");
+    if (!token || token !== env.apiToken) {
+      return res.status(401).json({ message: "Token invalido" });
+    }
+    return next();
   });
 
   app.use(routes);
