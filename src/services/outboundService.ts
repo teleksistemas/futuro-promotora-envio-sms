@@ -3,6 +3,7 @@ import { httpClient } from "../clients/httpClient";
 import { IncomingPayload } from "../types/request";
 import { randomUUID } from "crypto";
 import { prisma } from "../clients/prisma";
+import { Prisma } from "@prisma/client";
 
 export type DownstreamResult = {
   requestOne: {
@@ -48,7 +49,7 @@ export const sendDownstreamRequests = async (
     .then(async (response) => {
       await prisma.log.update({
         where: { id: logEntry.id },
-        data: { smsStatus: response.status, smsError: null }
+        data: { smsStatus: response.status, smsError: Prisma.DbNull }
       });
       return response;
     })
@@ -57,7 +58,10 @@ export const sendDownstreamRequests = async (
       const errorBody = error?.response?.data ?? null;
       await prisma.log.update({
         where: { id: logEntry.id },
-        data: { smsStatus: status, smsError: errorBody }
+        data: {
+          smsStatus: status,
+          smsError: errorBody ?? Prisma.DbNull
+        }
       });
       throw error;
     });
