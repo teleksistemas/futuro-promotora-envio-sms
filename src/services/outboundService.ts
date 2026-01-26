@@ -22,6 +22,17 @@ const formatPhoneTarget = (phoneDialed: string) => {
   return `${normalized}@sms.gw.msging.net`;
 };
 
+const getAuthKeyForRouter = (router: string) => {
+  const normalizedRouter = router.trim();
+  const authKey = env.routerAuthKeys[normalizedRouter];
+  if (!authKey) {
+    throw new Error(
+      `Auth key nao configurada para o router informado: ${router}`
+    );
+  }
+  return authKey;
+};
+
 export const sendDownstreamRequests = async (
   payload: IncomingPayload
 ): Promise<DownstreamResult> => {
@@ -32,18 +43,19 @@ export const sendDownstreamRequests = async (
   });
 
   const smsTarget = formatPhoneTarget(payload.phoneDialed);
+  const routerAuthKey = getAuthKeyForRouter(payload.router);
 
   const msgingPayload = {
     id: randomUUID(),
     to: smsTarget,
     type: "text/plain",
-    content: "Mensagem enviada"
+    content: payload.template
   };
 
   const requestOnePromise = httpClient
     .post(env.msgingUrl, msgingPayload, {
       headers: {
-        Authorization: env.msgingAuthKey
+        Authorization: env.authKeySms
       }
     })
     .then(async (response) => {
@@ -73,14 +85,15 @@ export const sendDownstreamRequests = async (
     uri: "/contacts",
     type: "application/vnd.lime.contact+json",
     resource: {
-      identity: smsTarget,
+    identity: "55"+payload.phoneDialed+"@wa.gw.msging.net",
       extras: {
         emailAgente: payload.email,
         nomeAgente: payload.nome,
         ramalAgente: String(payload.ramal),
         idAgente: String(payload.user_id),
         phoneUse: payload.phoneDialed,
-        nameUser: payload.phoneName
+        nameUser: payload.phoneName,
+        apisms:"true"
       },
       source: "SMS"
     }
@@ -91,7 +104,7 @@ export const sendDownstreamRequests = async (
     msgingCommandsPayload,
     {
       headers: {
-        Authorization: env.msgingCommandsAuthKey
+        Authorization: routerAuthKey
       }
     }
   );

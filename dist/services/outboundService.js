@@ -11,6 +11,21 @@ const formatPhoneTarget = (phoneDialed) => {
     const normalized = trimmed.startsWith("+55") ? trimmed : `+55${trimmed}`;
     return `${normalized}@sms.gw.msging.net`;
 };
+const normalizeRouterForKeyLookup = (router) => {
+    const trimmed = router.trim();
+    if (trimmed.length >= 3 && trimmed[2] === "9") {
+        return `${trimmed.slice(0, 2)}${trimmed.slice(3)}`;
+    }
+    return trimmed;
+};
+const getAuthKeyForRouter = (router) => {
+    const normalizedRouter = normalizeRouterForKeyLookup(router);
+    const authKey = env_1.env.routerAuthKeys[normalizedRouter];
+    if (!authKey) {
+        throw new Error(`Auth key nao configurada para o router informado: ${router}`);
+    }
+    return authKey;
+};
 const sendDownstreamRequests = async (payload) => {
     const logEntry = await prisma_1.prisma.log.create({
         data: {
@@ -18,16 +33,17 @@ const sendDownstreamRequests = async (payload) => {
         }
     });
     const smsTarget = formatPhoneTarget(payload.phoneDialed);
+    const routerAuthKey = getAuthKeyForRouter(payload.router);
     const msgingPayload = {
         id: (0, crypto_1.randomUUID)(),
         to: smsTarget,
         type: "text/plain",
-        content: "Mensagem enviada"
+        content: payload.template
     };
     const requestOnePromise = httpClient_1.httpClient
         .post(env_1.env.msgingUrl, msgingPayload, {
         headers: {
-            Authorization: env_1.env.msgingAuthKey
+            Authorization: env_1.env.authKeySms
         }
     })
         .then(async (response) => {
@@ -70,7 +86,7 @@ const sendDownstreamRequests = async (payload) => {
     };
     const requestTwoPromise = httpClient_1.httpClient.post(env_1.env.msgingCommandsUrl, msgingCommandsPayload, {
         headers: {
-            Authorization: env_1.env.msgingCommandsAuthKey
+            Authorization: routerAuthKey
         }
     });
     const [requestOneResponse, requestTwoResponse] = await Promise.all([

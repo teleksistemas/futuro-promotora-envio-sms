@@ -9,7 +9,9 @@ const payloadSchema = z.object({
   ramal: z.number().int(),
   user_id: z.number().int(),
   phoneDialed: z.string().min(1),
-  phoneName: z.string().min(1)
+  phoneName: z.string().min(1),
+  template: z.string().min(1),
+  router: z.string().min(1)
 });
 
 export const handleIncomingRequest = async (req: Request, res: Response) => {

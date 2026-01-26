@@ -6,9 +6,11 @@ dotenv.config();
 const envSchema = z.object({
   PORT: z.string().default("3000"),
   MSGING_URL: z.string().url(),
-  MSGING_AUTH_KEY: z.string().min(1),
+  AUTH_KEY_SMS: z.string().min(1),
+  AUTH_KEY_51981091766: z.string().min(1),
+  AUTH_KEY_51981095827: z.string().min(1),
+  AUTH_KEY_51981028528: z.string().min(1),
   MSGING_COMMANDS_URL: z.string().url(),
-  MSGING_COMMANDS_AUTH_KEY: z.string().min(1),
   REQUEST_TIMEOUT_MS: z.string().optional(),
   API_TOKEN: z.string().min(1)
 });
@@ -22,9 +24,11 @@ if (!parsed.success) {
 const {
   PORT,
   MSGING_URL,
-  MSGING_AUTH_KEY,
+  AUTH_KEY_SMS,
+  AUTH_KEY_51981091766,
+  AUTH_KEY_51981095827,
+  AUTH_KEY_51981028528,
   MSGING_COMMANDS_URL,
-  MSGING_COMMANDS_AUTH_KEY,
   REQUEST_TIMEOUT_MS,
   API_TOKEN
 } = parsed.data;
@@ -32,9 +36,13 @@ const {
 export const env = {
   port: Number(PORT),
   msgingUrl: MSGING_URL,
-  msgingAuthKey: MSGING_AUTH_KEY,
   msgingCommandsUrl: MSGING_COMMANDS_URL,
-  msgingCommandsAuthKey: MSGING_COMMANDS_AUTH_KEY,
   requestTimeoutMs: REQUEST_TIMEOUT_MS ? Number(REQUEST_TIMEOUT_MS) : 8000,
-  apiToken: API_TOKEN
+  apiToken: API_TOKEN,
+  authKeySms: AUTH_KEY_SMS,
+  routerAuthKeys: {
+    "51981091766": AUTH_KEY_51981091766,
+    "51981095827": AUTH_KEY_51981095827,
+    "51981028528": AUTH_KEY_51981028528
+  } as Record<string, string>
 };

@@ -5,4 +5,6 @@ export type IncomingPayload = {
   user_id: number;
   phoneDialed: string;
   phoneName: string;
+  template: string;
+  router: string;
 };

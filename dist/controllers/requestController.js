@@ -9,7 +9,9 @@ const payloadSchema = zod_1.z.object({
     ramal: zod_1.z.number().int(),
     user_id: zod_1.z.number().int(),
     phoneDialed: zod_1.z.string().min(1),
-    phoneName: zod_1.z.string().min(1)
+    phoneName: zod_1.z.string().min(1),
+    template: zod_1.z.string().min(1),
+    router: zod_1.z.string().min(1)
 });
 const handleIncomingRequest = async (req, res) => {
     const parsed = payloadSchema.safeParse(req.body);
