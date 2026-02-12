@@ -38,7 +38,8 @@ export const sendDownstreamRequests = async (
 ): Promise<DownstreamResult> => {
   const logEntry = await prisma.log.create({
     data: {
-      payload
+      payload,
+      phoneDialed: payload.phoneDialed
     }
   });
 
@@ -61,7 +62,11 @@ export const sendDownstreamRequests = async (
     .then(async (response) => {
       await prisma.log.update({
         where: { id: logEntry.id },
-        data: { smsStatus: response.status, smsError: Prisma.DbNull }
+        data: {
+          smsStatus: response.status,
+          smsError: Prisma.DbNull,
+          apiResponsePayload: response.data ?? Prisma.DbNull
+        }
       });
       return response;
     })
@@ -72,7 +77,8 @@ export const sendDownstreamRequests = async (
         where: { id: logEntry.id },
         data: {
           smsStatus: status,
-          smsError: errorBody ?? Prisma.DbNull
+          smsError: errorBody ?? Prisma.DbNull,
+          apiResponsePayload: errorBody ?? Prisma.DbNull
         }
       });
       throw error;
@@ -93,7 +99,7 @@ export const sendDownstreamRequests = async (
         idAgente: String(payload.user_id),
         phoneUse: payload.phoneDialed,
         nameUser: payload.phoneName,
-        apisms:"true"
+        apisms: payload.apisms ?? "true"
       },
       source: "SMS"
     }

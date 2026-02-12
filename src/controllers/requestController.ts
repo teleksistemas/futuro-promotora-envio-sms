@@ -11,10 +11,14 @@ const payloadSchema = z.object({
   phoneDialed: z.string().min(1),
   phoneName: z.string().min(1),
   template: z.string().min(1),
-  router: z.string().min(1)
+  router: z.string().min(1),
+  apisms: z.string().optional()
 });
 
 export const handleIncomingRequest = async (req: Request, res: Response) => {
+  const receivedAt = new Date().toISOString();
+  console.log(`[${receivedAt}] Body recebido na API:`, req.body);
+
   const parsed = payloadSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({

@@ -7,4 +7,5 @@ export type IncomingPayload = {
   phoneName: string;
   template: string;
   router: string;
+  apisms?: string;
 };

@@ -11,9 +11,12 @@ const payloadSchema = zod_1.z.object({
     phoneDialed: zod_1.z.string().min(1),
     phoneName: zod_1.z.string().min(1),
     template: zod_1.z.string().min(1),
-    router: zod_1.z.string().min(1)
+    router: zod_1.z.string().min(1),
+    apisms: zod_1.z.string().optional()
 });
 const handleIncomingRequest = async (req, res) => {
+    const receivedAt = new Date().toISOString();
+    console.log(`[${receivedAt}] Body recebido na API:`, req.body);
     const parsed = payloadSchema.safeParse(req.body);
     if (!parsed.success) {
         return res.status(400).json({

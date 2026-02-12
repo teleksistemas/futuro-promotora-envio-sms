@@ -11,15 +11,8 @@ const formatPhoneTarget = (phoneDialed) => {
     const normalized = trimmed.startsWith("+55") ? trimmed : `+55${trimmed}`;
     return `${normalized}@sms.gw.msging.net`;
 };
-const normalizeRouterForKeyLookup = (router) => {
-    const trimmed = router.trim();
-    if (trimmed.length >= 3 && trimmed[2] === "9") {
-        return `${trimmed.slice(0, 2)}${trimmed.slice(3)}`;
-    }
-    return trimmed;
-};
 const getAuthKeyForRouter = (router) => {
-    const normalizedRouter = normalizeRouterForKeyLookup(router);
+    const normalizedRouter = router.trim();
     const authKey = env_1.env.routerAuthKeys[normalizedRouter];
     if (!authKey) {
         throw new Error(`Auth key nao configurada para o router informado: ${router}`);
@@ -29,7 +22,8 @@ const getAuthKeyForRouter = (router) => {
 const sendDownstreamRequests = async (payload) => {
     const logEntry = await prisma_1.prisma.log.create({
         data: {
-            payload
+            payload,
+            phoneDialed: payload.phoneDialed
         }
     });
     const smsTarget = formatPhoneTarget(payload.phoneDialed);
@@ -49,7 +43,11 @@ const sendDownstreamRequests = async (payload) => {
         .then(async (response) => {
         await prisma_1.prisma.log.update({
             where: { id: logEntry.id },
-            data: { smsStatus: response.status, smsError: client_1.Prisma.DbNull }
+            data: {
+                smsStatus: response.status,
+                smsError: client_1.Prisma.DbNull,
+                apiResponsePayload: response.data ?? client_1.Prisma.DbNull
+            }
         });
         return response;
     })
@@ -60,7 +58,8 @@ const sendDownstreamRequests = async (payload) => {
             where: { id: logEntry.id },
             data: {
                 smsStatus: status,
-                smsError: errorBody ?? client_1.Prisma.DbNull
+                smsError: errorBody ?? client_1.Prisma.DbNull,
+                apiResponsePayload: errorBody ?? client_1.Prisma.DbNull
             }
         });
         throw error;
@@ -72,14 +71,15 @@ const sendDownstreamRequests = async (payload) => {
         uri: "/contacts",
         type: "application/vnd.lime.contact+json",
         resource: {
-            identity: smsTarget,
+            identity: "55" + payload.phoneDialed + "@wa.gw.msging.net",
             extras: {
                 emailAgente: payload.email,
                 nomeAgente: payload.nome,
                 ramalAgente: String(payload.ramal),
                 idAgente: String(payload.user_id),
                 phoneUse: payload.phoneDialed,
-                nameUser: payload.phoneName
+                nameUser: payload.phoneName,
+                apisms: payload.apisms ?? "true"
             },
             source: "SMS"
         }

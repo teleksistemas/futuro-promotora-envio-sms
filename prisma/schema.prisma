@@ -11,6 +11,8 @@ model Log {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   payload   Json
+  phoneDialed String?
   smsStatus Int?
   smsError  Json?
+  apiResponsePayload Json?
 }
