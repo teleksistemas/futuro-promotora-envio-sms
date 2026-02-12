@@ -33,6 +33,10 @@ const getAuthKeyForRouter = (router: string) => {
   return authKey;
 };
 
+const toInputJsonValue = (value: unknown): Prisma.InputJsonValue => {
+  return JSON.parse(JSON.stringify(value ?? null)) as Prisma.InputJsonValue;
+};
+
 export const sendDownstreamRequests = async (
   payload: IncomingPayload
 ): Promise<DownstreamResult> => {
@@ -64,8 +68,7 @@ export const sendDownstreamRequests = async (
         where: { id: logEntry.id },
         data: {
           smsStatus: response.status,
-          smsError: Prisma.DbNull,
-          apiResponsePayload: response.data ?? Prisma.DbNull
+          smsError: Prisma.DbNull
         }
       });
       return response;
@@ -77,8 +80,7 @@ export const sendDownstreamRequests = async (
         where: { id: logEntry.id },
         data: {
           smsStatus: status,
-          smsError: errorBody ?? Prisma.DbNull,
-          apiResponsePayload: errorBody ?? Prisma.DbNull
+          smsError: errorBody ?? Prisma.DbNull
         }
       });
       throw error;
@@ -120,7 +122,7 @@ export const sendDownstreamRequests = async (
     requestTwoPromise
   ]);
 
-  return {
+  const results: DownstreamResult = {
     requestOne: {
       status: requestOneResponse.status,
       data: requestOneResponse.data
@@ -130,4 +132,13 @@ export const sendDownstreamRequests = async (
       data: requestTwoResponse.data
     }
   };
+
+  await prisma.log.update({
+    where: { id: logEntry.id },
+    data: {
+      apiResponsePayload: toInputJsonValue(results)
+    }
+  });
+
+  return results;
 };
