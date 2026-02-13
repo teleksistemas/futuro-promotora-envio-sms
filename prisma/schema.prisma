@@ -14,5 +14,7 @@ model Log {
   phoneDialed String?
   smsStatus Int?
   smsError  Json?
+  smsRequestBody Json?
   apiResponsePayload Json?
 }
+

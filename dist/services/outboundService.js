@@ -23,12 +23,6 @@ const toInputJsonValue = (value) => {
     return JSON.parse(JSON.stringify(value ?? null));
 };
 const sendDownstreamRequests = async (payload) => {
-    const logEntry = await prisma_1.prisma.log.create({
-        data: {
-            payload,
-            phoneDialed: payload.phoneDialed
-        }
-    });
     const smsTarget = formatPhoneTarget(payload.phoneDialed);
     const routerAuthKey = getAuthKeyForRouter(payload.router);
     const msgingPayload = {
@@ -37,6 +31,13 @@ const sendDownstreamRequests = async (payload) => {
         type: "text/plain",
         content: payload.template
     };
+    const logEntry = await prisma_1.prisma.log.create({
+        data: {
+            payload,
+            phoneDialed: payload.phoneDialed,
+            smsRequestBody: toInputJsonValue(msgingPayload)
+        }
+    });
     const requestOnePromise = httpClient_1.httpClient
         .post(env_1.env.msgingUrl, msgingPayload, {
         headers: {
